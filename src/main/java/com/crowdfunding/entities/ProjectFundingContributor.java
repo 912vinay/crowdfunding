@@ -1,15 +1,17 @@
 package com.crowdfunding.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
 @Entity
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class ProjectFundingContributor {
     @Id
@@ -21,7 +23,8 @@ public class ProjectFundingContributor {
     private Date creationTime;
     private Double contributionAmount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne()
+    @JsonBackReference
     @JoinColumn(name = "requestId")
     private ProjectFundingRequest projectFundingRequest;
 }

@@ -1,6 +1,7 @@
 package com.crowdfunding.api.services;
 
 import com.crowdfunding.api.repository.ProjectFundingContributorsRepository;
+import com.crowdfunding.dto.ProjectFundingContributorDto;
 import com.crowdfunding.entities.ProjectFundingContributor;
 import com.crowdfunding.entities.ProjectFundingRequest;
 import com.crowdfunding.entities.Status;
@@ -16,28 +17,35 @@ import org.springframework.stereotype.Service;
 public class ProjectFundingContributorsService {
 
     private final ProjectFundingContributorsRepository projectFundingContributorsRepository;
+    private final ProjectFundingRequestService projectFundingRequestService;
 
 
-    public void contributeFund(ProjectFundingContributor projectFundingContributor) {
-        ProjectFundingRequest projectFundingRequest = projectFundingContributor.getProjectFundingRequest();
-        validate(projectFundingContributor, projectFundingRequest);
+    public ProjectFundingContributor contributeFund(ProjectFundingContributorDto projectFundingContributorDto) {
+        ProjectFundingRequest projectFundingRequest = projectFundingRequestService.
+                findById(projectFundingContributorDto.getRequestId())
+                .orElseThrow(() -> new FundingProcessingException("No Funding Request present requestId " + projectFundingContributorDto.getRequestId()));
+        validate(projectFundingContributorDto, projectFundingRequest);
         synchronized (projectFundingRequest) {
-            projectFundingRequest.setAmount(projectFundingRequest.getAmount() - projectFundingContributor.getContributionAmount());
+
+            projectFundingRequest.setAmount(projectFundingRequest.getAmount() - projectFundingContributorDto.getContributionAmount());
             updateProjectStatus(projectFundingRequest);
-            projectFundingContributorsRepository.save(projectFundingContributor);
+            ProjectFundingContributor projectFundingContributor = new ProjectFundingContributor();
+            projectFundingContributor.setContributorEmail(projectFundingContributorDto.getContributorEmail());
+            projectFundingContributor.setProjectFundingRequest(projectFundingRequest);
+            projectFundingContributor.setContributionAmount(projectFundingContributorDto.getContributionAmount());
+            return projectFundingContributorsRepository.save(projectFundingContributor);
         }
     }
 
-    private void validate(ProjectFundingContributor projectFundingContributor, ProjectFundingRequest projectFundingRequest) {
-        if (projectFundingRequest.getAmount() == 0 || projectFundingRequest.getProject().getStatus().equals(Status.ARCHIVED))
+    private void validate(ProjectFundingContributorDto projectFundingContributorDto, ProjectFundingRequest projectFundingRequest) {
+        if (projectFundingRequest.getProject().getStatus().equals(Status.ARCHIVED))
             throw new FundingNotRequiredException("Project already funded or archived");
 
-        if (projectFundingContributor.getContributionAmount() <= 0 ||
-                projectFundingContributor.getContributionAmount() > projectFundingRequest.getAmount()) {
+        if (projectFundingContributorDto.getContributionAmount() <= 0 ||
+                projectFundingContributorDto.getContributionAmount() > projectFundingRequest.getAmount()) {
             throw new FundingProcessingException("Invalid contribution amount");
         }
     }
-
 
 
     private void updateProjectStatus(ProjectFundingRequest projectFundingRequest) {

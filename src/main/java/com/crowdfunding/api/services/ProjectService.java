@@ -2,12 +2,14 @@ package com.crowdfunding.api.services;
 
 import com.crowdfunding.api.repository.ProjectRepository;
 import com.crowdfunding.entities.Project;
+import com.crowdfunding.entities.ProjectFundingRequest;
 import com.crowdfunding.exception.ProjectNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -17,16 +19,21 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
 
     public List<Project> getAllProjects() {
-        return projectRepository.findAll();
+        return projectRepository.findAllWithFundingRequests();
     }
 
     public Project getProjectById(long id) {
-        Optional<Project> project = projectRepository.findById(id);
+        Optional<Project> project = projectRepository.findByIdWithFundingRequests(id);
         return project.orElseThrow(() -> new ProjectNotFoundException(PROJECT_NOT_FOUND));
     }
 
+    public Set<ProjectFundingRequest> getProjectFundingRequestByProjectId(long id) {
+        Optional<Project> project = projectRepository.findByIdWithFundingRequests(id);
+        return project.orElseThrow(() -> new ProjectNotFoundException(PROJECT_NOT_FOUND)).getProjectFundingRequests();
+    }
+
     public List<Project> getProjectByEmail(String email) {
-        return projectRepository.findByInnovatorEmail(email);
+        return projectRepository.findByInnovatorEmailWithFundingRequests(email);
 
     }
 

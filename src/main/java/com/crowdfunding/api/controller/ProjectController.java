@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/projects")
+@RequestMapping("/api/v1/project")
 @AllArgsConstructor
 @Validated
 @Slf4j
@@ -23,27 +23,18 @@ public class ProjectController {
 
     @PostMapping()
     public ResponseEntity<Project> createProject(@RequestBody Project project) {
-        try {
-
-            if (project == null) {
-                return ResponseEntity.badRequest().build();
-            }
             Project createdProject = projectService.createProject(project);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdProject);
-        } catch (Exception e) {
-            log.error("Failed to create project", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
     }
 
     // Get all projects
-    @GetMapping
+    @GetMapping("/all")
     public List<Project> getAllProjects() {
         return projectService.getAllProjects();
     }
 
-    @GetMapping("/{emailId}")
-    public List<Project> getAllProjects(@PathVariable String emailId) {
+    @GetMapping("/innovatorEmail/{emailId}")
+    public List<Project> getProjectByEmail(@PathVariable String emailId) {
         return projectService.getProjectByEmail(emailId);
     }
 
