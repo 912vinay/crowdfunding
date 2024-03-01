@@ -3,6 +3,7 @@ import com.crowdfunding.exception.FundingNotRequiredException;
 import com.crowdfunding.exception.FundingProcessingException;
 import com.crowdfunding.exception.ProjectNotFoundException;
 import com.crowdfunding.exception.dto.ErrorDto;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,8 +19,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorDto> handleValidationExceptions(MethodArgumentNotValidException e) {
+    @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class})
+    public ResponseEntity<ErrorDto> handleValidationExceptions(Exception e) {
 
         ErrorDto errorDto = new ErrorDto(HttpStatus.BAD_REQUEST, e.getMessage());
         return new ResponseEntity<>(errorDto, HttpStatus.BAD_REQUEST);
